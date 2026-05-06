@@ -38,7 +38,7 @@ def estimate_render_time(job: RenderJob) -> str:
 def get_stream_info(path):
     """Check if a file has audio and video streams using ffmpeg."""
     try:
-        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-i", os.path.abspath(path)]
+        cmd = ["ffmpeg", "-i", os.path.abspath(path)]
         res = subprocess.run(cmd, stderr=subprocess.PIPE, text=True, timeout=5)
         # Search for Stream #0:x: Video: ... and Stream #0:x: Audio: ...
         has_v = "Video:" in res.stderr
@@ -50,7 +50,7 @@ def get_stream_info(path):
 def get_video_duration(path):
     """Get duration of a video file in seconds."""
     try:
-        cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-i", os.path.abspath(path)]
+        cmd = ["ffmpeg", "-i", os.path.abspath(path)]
         res = subprocess.run(cmd, stderr=subprocess.PIPE, text=True, timeout=5)
         import re
         match = re.search(r"Duration:\s+(\d+):(\d+):(\d+\.\d+)", res.stderr)
@@ -225,7 +225,7 @@ def assemble_video(template: VideoTemplate, body_clip_path: str, output_path: st
     filter_graph = ";\n".join(filters) # Use newlines for readability in script file
     
     # Build command
-    cmd = [imageio_ffmpeg.get_ffmpeg_exe(), "-y"]
+    cmd = ["ffmpeg", "-y"]
     for path in inputs:
         abs_path = os.path.abspath(path).replace('\\', '/')
         cmd.extend(["-i", abs_path])

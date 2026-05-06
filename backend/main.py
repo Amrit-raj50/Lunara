@@ -16,7 +16,13 @@ from captions import transcribe_audio, segments_to_srt, burn_subtitles
 from thumbnail import extract_best_thumbnail, add_thumbnail_overlay
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://amrit-123:amrit-123@cluster0.hgh6hxe.mongodb.net/Lunara")
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+BASE_URL = os.getenv("BASE_URL")
+if not BASE_URL:
+    railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
+    if railway_domain:
+        BASE_URL = f"https://{railway_domain}"
+    else:
+        BASE_URL = "http://localhost:8000"
 
 client = MongoClient(MONGO_URI)
 db = client["Lunara"]

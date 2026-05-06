@@ -213,7 +213,7 @@ export function TemplateBuilderView() {
       // 2. Request preview
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: templateName, tracks: updatedTracks }),
+        body: JSON.stringify({ template: { name: templateName, tracks: updatedTracks } }),
       });
       const data = await res.json();
       if (data.preview_url) setPreviewUrl(data.preview_url);
@@ -347,7 +347,7 @@ export function BatchRenderView() {
       const tmpl = templates.find(t => t.template_id === selectedTemplate);
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...tmpl, body_clip: clipPath }),
+        body: JSON.stringify({ template: tmpl, body_clip: clipPath }),
       });
       const data = await res.json();
       if (data.preview_url) setPreviewUrl(data.preview_url);
