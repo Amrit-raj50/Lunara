@@ -15,12 +15,15 @@ from render import RenderJob, RenderResult, assemble_video
 from captions import transcribe_audio, segments_to_srt, burn_subtitles
 from thumbnail import extract_best_thumbnail, add_thumbnail_overlay
 
-MONGO_URI = "mongodb+srv://amrit-123:amrit-123@cluster0.hgh6hxe.mongodb.net/Lunara"
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://amrit-123:amrit-123@cluster0.hgh6hxe.mongodb.net/Lunara")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+
 client = MongoClient(MONGO_URI)
 db = client["Lunara"]
 library_collection = db["library_assets"]
 analytics_collection = db["analytics_logs"]
 settings_collection = db["user_settings"]
+wardrobe_collection = db["wardrobe_items"] # Added for completeness if needed
 templates_collection = db["video_templates"]
 jobs_collection = db["render_jobs"]
 
@@ -104,7 +107,7 @@ async def enhance_audio(
             "id": task_id,
             "filename": f"{file.filename.split('.')[0]}_enhanced.mp4",
             "file_type": "video/mp4",
-            "url": f"http://localhost:8000/api/download/{task_id}",
+            "url": f"{BASE_URL}/api/download/{task_id}",
             "size": file_size,
             "created_at": datetime.datetime.utcnow()
         })
@@ -356,7 +359,7 @@ async def render_preview(template: VideoTemplate = Body(...), body_clip: Optiona
     try:
         # Use first 10 seconds or full for preview if possible, but assemble_video handles duration
         assemble_video(template, body_clip or "", output_path, "preview_job", is_preview=True)
-        return {"preview_url": f"http://localhost:8000/api/render/preview/{output_name}"}
+        return {"preview_url": f"{BASE_URL}/api/render/preview/{output_name}"}
     except Exception as e:
         return {"error": str(e)}
 
