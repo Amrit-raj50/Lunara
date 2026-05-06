@@ -179,7 +179,7 @@ export function TemplateBuilderView() {
         }),
       }));
       const res = await fetch(`${API_BASE_URL}/api/templates`, {
-        method: `POST`, headers: { `Content-Type`: `application/json` },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ template_id: templateId, name: templateName, tracks: cleanTracks }),
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
@@ -201,7 +201,7 @@ export function TemplateBuilderView() {
           if (c._localFile) {
             const fd = new FormData();
             fd.append(`file`, c._localFile);
-            const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: `POST`, body: fd });
+            const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
             const data = await res.json();
             c.file_path = data.file_path;
             delete c._localFile; // uploaded
@@ -212,7 +212,7 @@ export function TemplateBuilderView() {
 
       // 2. Request preview
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
-        method: `POST`, headers: { `Content-Type`: `application/json` },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: templateName, tracks: updatedTracks }),
       });
       const data = await res.json();
@@ -336,7 +336,7 @@ export function BatchRenderView() {
     fd.append(`thumbnail_title`, thumbTitle);
     fd.append(`export_srt`, exportSrt);
     fd.append(`burn_subs`, burnSubs);
-    const r = await fetch(`${API_BASE_URL}/api/render/batch`, { method: `POST`, body: fd });
+    const r = await fetch(`${API_BASE_URL}/api/render/batch`, { method: 'POST', body: fd });
     const d = await r.json();
     setJobId(d.job_id);
   };
@@ -346,7 +346,7 @@ export function BatchRenderView() {
     try {
       const tmpl = templates.find(t => t.template_id === selectedTemplate);
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
-        method: `POST`, headers: { `Content-Type`: `application/json` },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...tmpl, body_clip: clipPath }),
       });
       const data = await res.json();
@@ -432,7 +432,7 @@ export function BatchRenderView() {
                   const fd = new FormData();
                   fd.append(`file`, f);
                   try {
-                    const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: `POST`, body: fd });
+                    const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
                     const data = await res.json();
                     setBodyClips([...bodyClips, { name: f.name, path: data.file_path }]);
                   } catch (err) {
