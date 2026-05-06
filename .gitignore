@@ -1,0 +1,31 @@
+# Python
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+.eslintcache
+
+# Project Specific Data
+backend/storage/
+backend/temp_files/
+backend/storage/clips/
+backend/storage/outputs/
+backend/storage/previews/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+backend/.env
+frontend/.env
