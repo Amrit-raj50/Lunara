@@ -7,6 +7,7 @@ import {
   Play, Loader2, Volume2, StopCircle, RefreshCw, Save
 } from 'lucide-react'
 import { TemplateBuilderView, BatchRenderView } from './Workflows.jsx'
+import { API_BASE_URL } from './apiConfig.js';
 
 const PRESETS = {
   "YouTube": { noise: 65, boost: 40, eq: 82, lufs: 14 },
@@ -58,7 +59,7 @@ function App() {
   useEffect(() => {
     let ws = null;
     if (taskId) {
-      const wsUrl = `ws://localhost:8000/api/ws/${taskId}`
+      const wsUrl = `${API_BASE_URL.replace('http', 'ws')}/api/ws/${taskId}`
       ws = new WebSocket(wsUrl)
       
       ws.onmessage = (event) => {
@@ -71,7 +72,7 @@ function App() {
         
         if (data.step === 6) {
           setIsProcessing(false)
-          setDownloadUrl(`http://localhost:8000/api/download/${taskId}`)
+          setDownloadUrl(`${API_BASE_URL}/api/download/${taskId}`)
           ws.close()
         } else if (data.step === -1) {
           setIsProcessing(false)
@@ -158,7 +159,7 @@ function App() {
     formData.append("light_match", lightMatch);
     
     try {
-      const res = await fetch("http://localhost:8000/api/preview", {
+      const res = await fetch(`${API_BASE_URL}/api/preview`, {
         method: "POST",
         body: formData
       });
@@ -220,7 +221,7 @@ function App() {
     }
     
     try {
-      const res = await fetch("http://localhost:8000/api/enhance", {
+      const res = await fetch(`${API_BASE_URL}/api/enhance`, {
         method: "POST",
         body: formData
       })
@@ -681,7 +682,7 @@ function LibraryView() {
   const [assets, setAssets] = useState([]);
   
   useEffect(() => {
-    fetch("http://localhost:8000/api/library")
+    fetch(`${API_BASE_URL}/api/library`)
       .then(res => res.json())
       .then(data => setAssets(data.assets || []))
       .catch(err => console.error(err));
@@ -689,7 +690,7 @@ function LibraryView() {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:8000/api/library/${id}`, { method: 'DELETE' });
+      await fetch(`${API_BASE_URL}/api/library/${id}`, { method: 'DELETE' });
       setAssets(assets.filter(a => a.id !== id));
     } catch (err) {
       console.error(err);
@@ -739,7 +740,7 @@ function AnalyticsView() {
   const [stats, setStats] = useState(null);
   
   useEffect(() => {
-    fetch("http://localhost:8000/api/analytics")
+    fetch(`${API_BASE_URL}/api/analytics`)
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error(err));
@@ -783,7 +784,7 @@ function SettingsView() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/settings")
+    fetch(`${API_BASE_URL}/api/settings`)
       .then(res => res.json())
       .then(data => setSettings(data || { export_quality: '1080p', hardware_acceleration: 'Auto' }))
       .catch(err => console.error(err));
@@ -796,7 +797,7 @@ function SettingsView() {
     formData.append("hardware_acceleration", settings.hardware_acceleration);
     
     try {
-      await fetch("http://localhost:8000/api/settings", { method: 'POST', body: formData });
+      await fetch(`${API_BASE_URL}/api/settings`, { method: 'POST', body: formData });
       setTimeout(() => setSaving(false), 500);
     } catch (err) {
       console.error(err);
