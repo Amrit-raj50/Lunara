@@ -166,10 +166,19 @@ def assemble_video(template: VideoTemplate, body_clip_path: str, output_path: st
             input_idx += 1
 
     if not inputs:
-        raise Exception("No valid clips found to assemble.")
-        
-    if total_duration <= 0:
-        total_duration = 5.0 # safe fallback
+        # Instead of crashing, return a blank video if it's a preview or raise a cleaner error
+        if is_preview:
+            # Create a 1-second black dummy preview
+            total_duration = 1.0
+            filters.append(f"color=c=black:s={res}:d={total_duration},setsar=1 [vout_final]")
+            filters.append(f"anullsrc=d={total_duration} [aout_final]")
+            video_out_pad = "vout_final"
+            audio_out_pad = "aout_final"
+        else:
+            raise Exception("The timeline is empty. Add at least one clip with a valid file or placeholder to render.")
+    else:
+        if total_duration <= 0:
+            total_duration = 5.0 # safe fallback
         
     # Build filter_complex
     filters = []

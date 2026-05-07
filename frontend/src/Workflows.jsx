@@ -169,9 +169,9 @@ export function TemplateBuilderView() {
     // Clear existing timer
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-    // Only auto-preview if there's at least one clip
-    const hasClips = tracks.some(t => t.clips.length > 0);
-    if (!hasClips) return;
+    // Only auto-preview if there's at least one clip WITH a file or placeholder
+    const hasValidClips = tracks.some(t => t.clips.some(c => c.is_placeholder || c.file_path || c._localFile));
+    if (!hasValidClips) return;
 
     // Set new timer
     debounceTimerRef.current = setTimeout(() => {
