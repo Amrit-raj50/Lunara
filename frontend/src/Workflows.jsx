@@ -159,6 +159,29 @@ export function TemplateBuilderView() {
   const [showTemplateList, setShowTemplateList] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
+  const [isAutoPreviewEnabled, setIsAutoPreviewEnabled] = useState(true);
+  const debounceTimerRef = useRef(null);
+
+  // Auto-preview effect
+  useEffect(() => {
+    if (!isAutoPreviewEnabled) return;
+    
+    // Clear existing timer
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+
+    // Only auto-preview if there's at least one clip
+    const hasClips = tracks.some(t => t.clips.length > 0);
+    if (!hasClips) return;
+
+    // Set new timer
+    debounceTimerRef.current = setTimeout(() => {
+      generatePreview(true); // true = silent/background
+    }, 2000); // 2 second debounce
+
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
+  }, [tracks, templateName]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/templates`)
@@ -170,7 +193,6 @@ export function TemplateBuilderView() {
   const saveTemplate = async () => {
     setIsSaving(true);
     try {
-      // Strip non-serializable fields (like _localFile) before sending
       const cleanTracks = tracks.map(t => ({
         ...t,
         clips: t.clips.map(c => {
@@ -184,31 +206,38 @@ export function TemplateBuilderView() {
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       setSaveMsg(`✓ Saved!`);
-      // Refresh templates list
       fetch(`${API_BASE_URL}/api/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
       setTimeout(() => setSaveMsg(``), 2000);
     } catch (err) { setSaveMsg(`Error: ` + err.message); }
     setIsSaving(false);
   };
 
-  const generatePreview = async () => {
+  const generatePreview = async (isAuto = false) => {
     setIsPreviewing(true);
     try {
       // 1. Upload local files if any
-      const updatedTracks = [...tracks];
+      const updatedTracks = JSON.parse(JSON.stringify(tracks)); // Deep clone
+      let needsStateUpdate = false;
+
       for (let t of updatedTracks) {
         for (let c of t.clips) {
-          if (c._localFile) {
+          // Find the original clip to see if it has a local file (since we cloned)
+          const originalTrack = tracks.find(ot => ot.track_id === t.track_id);
+          const originalClip = originalTrack?.clips.find(oc => oc.clip_id === c.clip_id);
+          
+          if (originalClip?._localFile) {
             const fd = new FormData();
-            fd.append(`file`, c._localFile);
+            fd.append(`file`, originalClip._localFile);
             const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
             const data = await res.json();
             c.file_path = data.file_path;
-            delete c._localFile; // uploaded
+            originalClip.file_path = data.file_path;
+            delete originalClip._localFile;
+            needsStateUpdate = true;
           }
         }
       }
-      setTracks(updatedTracks);
+      if (needsStateUpdate) setTracks([...tracks]);
 
       // 2. Request preview
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
@@ -218,7 +247,10 @@ export function TemplateBuilderView() {
       const data = await res.json();
       if (data.preview_url) setPreviewUrl(data.preview_url);
       else throw new Error(data.error || `Preview failed`);
-    } catch (err) { alert(`Preview Error: ` + err.message); }
+    } catch (err) { 
+      if (!isAuto) alert(`Preview Error: ` + err.message);
+      else console.error("Auto-preview error:", err);
+    }
     setIsPreviewing(false);
   };
 
@@ -242,6 +274,17 @@ export function TemplateBuilderView() {
         <input value={templateName} onChange={e => setTemplateName(e.target.value)}
           style={{ padding: `7px 14px`, background: `#161b27`, border: `1px solid #2d3748`, color: `#e2e8f0`, borderRadius: 6, fontSize: `0.95rem`, width: 260 }} />
         <div style={{ flex: 1 }} />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#161b27', padding: '4px 12px', borderRadius: 6, border: '1px solid #2d3748' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: isAutoPreviewEnabled ? '#22c55e' : '#718096' }}>LIVE PREVIEW</span>
+          <div 
+            onClick={() => setIsAutoPreviewEnabled(!isAutoPreviewEnabled)}
+            style={{ width: 34, height: 18, background: isAutoPreviewEnabled ? '#7c6af7' : '#2d3748', borderRadius: 20, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
+          >
+            <div style={{ position: 'absolute', top: 2, left: isAutoPreviewEnabled ? 18 : 2, width: 14, height: 14, background: '#fff', borderRadius: '50%', transition: 'left 0.2s' }} />
+          </div>
+        </div>
+
         <div style={{ position: `relative` }}>
           <button onClick={() => setShowTemplateList(!showTemplateList)} style={{ padding: `8px 16px`, background: `#161b27`, border: `1px solid #2d3748`, color: `#a0aec0`, borderRadius: 6, cursor: `pointer`, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
             <FolderOpen size={15} /> Load
@@ -265,8 +308,8 @@ export function TemplateBuilderView() {
           style={{ padding: `8px 16px`, background: `#0d2d1f`, border: `1px solid #22c55e`, color: `#22c55e`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
           <Plus size={15} /> Add Body Track
         </button>
-        <button onClick={generatePreview} disabled={isPreviewing} style={{ padding: `8px 16px`, background: `#2d3748`, border: `1px solid #4a5568`, color: `#fff`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
-          {isPreviewing ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />} {isPreviewing ? `Rendering…` : `Preview`}
+        <button onClick={() => generatePreview(false)} disabled={isPreviewing} style={{ padding: `8px 16px`, background: `#2d3748`, border: `1px solid #4a5568`, color: `#fff`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
+          {isPreviewing ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />} Force Preview
         </button>
         <button onClick={saveTemplate} disabled={isSaving} style={{ padding: `8px 20px`, background: `#7c6af7`, border: `none`, color: `#fff`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
           <Save size={15} /> {isSaving ? `Saving…` : `Save Template`}
@@ -274,9 +317,7 @@ export function TemplateBuilderView() {
         {saveMsg && <span style={{ fontSize: `0.85rem`, color: `#22c55e`, fontWeight: 700 }}>{saveMsg}</span>}
       </div>
 
-      {previewUrl && <PreviewModal videoUrl={previewUrl} onClose={() => setPreviewUrl(null)} />}
-
-      {/* Main layout: Left Panel + Timeline */}
+      {/* Main layout: Left Panel + (Preview & Timeline) */}
       <div style={{ display: `flex`, gap: 16, flex: 1, minHeight: 0 }}>
         {/* Left Editing Panel - shown when clip is selected */}
         {selClip && (
@@ -290,11 +331,72 @@ export function TemplateBuilderView() {
           />
         )}
 
-        {/* Timeline */}
-        <div style={{ flex: 1, minHeight: 0, display: `flex`, flexDirection: `column` }}>
-          <NLETimeline tracks={tracks} setTracks={setTracks} selectedClip={selectedClip} setSelectedClip={setSelectedClip} />
-          <div style={{ marginTop: 8, fontSize: `0.75rem`, color: `#4a5568` }}>
-            💡 <strong style={{ color: `#718096` }}>Tip:</strong> Double-click on a track lane to add a clip. Right-click any clip for more options. Drag clips to reposition.
+        {/* Right Content: Preview at top, Timeline at bottom */}
+        <div style={{ flex: 1, minHeight: 0, display: `flex`, flexDirection: `column`, gap: 16 }}>
+          
+          {/* Real-time Preview Section */}
+          <div style={{ 
+            height: '42vh', 
+            minHeight: 320, 
+            background: '#000', 
+            borderRadius: 12, 
+            border: '1px solid #2d3748', 
+            position: 'relative', 
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+          }}>
+            {previewUrl ? (
+              <video 
+                key={previewUrl} 
+                src={previewUrl} 
+                controls 
+                autoPlay 
+                muted
+                style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 4 }} 
+              />
+            ) : (
+              <div style={{ textAlign: 'center', color: '#4a5568' }}>
+                <Film size={48} style={{ marginBottom: 12, opacity: 0.3 }} />
+                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>No Preview Available</div>
+                <div style={{ fontSize: '0.75rem', marginTop: 4 }}>Add clips to the timeline to generate a preview automatically</div>
+              </div>
+            )}
+
+            {/* Loading Overlay */}
+            {isPreviewing && (
+              <div style={{ 
+                position: 'absolute', 
+                inset: 0, 
+                background: 'rgba(13, 17, 23, 0.7)', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                zIndex: 10,
+                backdropFilter: 'blur(2px)'
+              }}>
+                <Loader2 size={32} className="animate-spin" color="#7c6af7" />
+                <div style={{ marginTop: 12, color: '#fff', fontSize: '0.9rem', fontWeight: 700, letterSpacing: 0.5 }}>RENDERING LIVE PREVIEW...</div>
+              </div>
+            )}
+
+            {/* Status Badge */}
+            <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 800, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: isAutoPreviewEnabled ? '#22c55e' : '#718096', boxShadow: isAutoPreviewEnabled ? '0 0 8px #22c55e' : 'none' }} />
+              {isAutoPreviewEnabled ? 'LIVE' : 'AUTO-OFF'}
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div style={{ flex: 1, minHeight: 0, display: `flex`, flexDirection: `column` }}>
+            <NLETimeline tracks={tracks} setTracks={setTracks} selectedClip={selectedClip} setSelectedClip={setSelectedClip} />
+            <div style={{ marginTop: 8, fontSize: `0.75rem`, color: `#4a5568`, display: 'flex', justifyContent: 'space-between' }}>
+              <div>💡 <strong>Tip:</strong> Double-click on a track lane to add a clip. Drag to move.</div>
+              <div style={{ color: '#718096' }}>Preview updates automatically after 2s of inactivity</div>
+            </div>
           </div>
         </div>
       </div>
