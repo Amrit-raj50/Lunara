@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/assets/logo.png" alt="Lunara Logo" width="200"/>
+  <img src="frontend/public/assets/logo_rounded.png" alt="Lunara Logo" width="200"/>
 </p>
 
 <h1 align="center">Lunara</h1>
