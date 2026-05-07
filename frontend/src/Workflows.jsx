@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, FolderOpen, CheckCircle, AlertCircle, Layers, Upload, FileVideo, FileAudio, Image, Film, Trash2, X, Play, Loader2, Plus } from 'lucide-react';
+import { Save, FolderOpen, CheckCircle, AlertCircle, Layers, Upload, FileVideo, FileAudio, Image, Film, Trash2, X, Play, Loader2, Plus, Music } from 'lucide-react';
 import NLETimeline from './NLETimeline.jsx';
 import { API_BASE_URL } from './apiConfig.js';
 
@@ -269,26 +269,33 @@ export function TemplateBuilderView() {
     setIsPreviewing(true);
     try {
       const updatedTracks = JSON.parse(JSON.stringify(tracks));
+      let localTracks = [...tracks];
       let needsStateUpdate = false;
 
-      for (let t of updatedTracks) {
-        for (let c of t.clips) {
-          const originalTrack = tracks.find(ot => ot.track_id === t.track_id);
-          const originalClip = originalTrack?.clips.find(oc => oc.clip_id === c.clip_id);
-          
-          if (originalClip?._localFile) {
+      for (let i = 0; i < localTracks.length; i++) {
+        const t = localTracks[i];
+        for (let j = 0; j < t.clips.length; j++) {
+          const c = t.clips[j];
+          if (c._localFile) {
             const fd = new FormData();
-            fd.append(`file`, originalClip._localFile);
+            fd.append(`file`, c._localFile);
             const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
             const data = await res.json();
-            c.file_path = data.file_path;
-            originalClip.file_path = data.file_path;
-            delete originalClip._localFile;
+            
+            // Update the track and clip in an immutable way
+            const newTracks = [...localTracks];
+            const newClips = [...newTracks[i].clips];
+            const { _localFile, ...rest } = c;
+            newClips[j] = { ...rest, file_path: data.file_path };
+            newTracks[i] = { ...newTracks[i], clips: newClips };
+            
+            localTracks = newTracks;
+            updatedTracks[i].clips[j].file_path = data.file_path; // Also update the clone for the render request
             needsStateUpdate = true;
           }
         }
       }
-      if (needsStateUpdate) setTracks([...tracks]);
+      if (needsStateUpdate) setTracks(localTracks);
 
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
         method: 'POST', 
