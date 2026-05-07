@@ -26,7 +26,7 @@ function PreviewModal({ videoUrl, onClose }) {
   );
 }
 
-/* ── Left Editing Panel ── */
+/* ── Premium Sidebar Clip Editor ── */
 function ClipEditorPanel({ clip, trackIndex, clipIndex, tracks, setTracks, onClose }) {
   const fileInputRef = useRef(null);
   if (!clip) return null;
@@ -42,10 +42,8 @@ function ClipEditorPanel({ clip, trackIndex, clipIndex, tracks, setTracks, onClo
     if (!f) return;
     updateField('file_path', f.name);
     updateField('label', f.name.replace(/\.[^.]+$/, ''));
-    // Store file object for later upload
     updateField('_localFile', f);
 
-    // Auto-detect duration
     if (f.type.startsWith('video/') || f.type.startsWith('audio/')) {
       const url = URL.createObjectURL(f);
       const media = document.createElement(f.type.startsWith('video/') ? 'video' : 'audio');
@@ -58,85 +56,148 @@ function ClipEditorPanel({ clip, trackIndex, clipIndex, tracks, setTracks, onClo
   };
 
   const trackType = tracks[trackIndex]?.track_type || 'video';
-  const colors = {
-    video: { accent: '#22c55e', bg: '#0f2d1f', icon: <FileVideo size={18} /> },
-    audio: { accent: '#3b82f6', bg: '#0f1d30', icon: <FileAudio size={18} /> },
-    overlay: { accent: '#a855f7', bg: '#1f0f30', icon: <Image size={18} /> },
-    music: { accent: '#ef4444', bg: '#2d0f0f', icon: <Film size={18} /> },
-  }[trackType] || { accent: '#22c55e', bg: '#0f2d1f', icon: <FileVideo size={18} /> };
+  const theme = {
+    video: { accent: '#10b981', glow: 'rgba(16, 185, 129, 0.2)', icon: <Film size={18} /> },
+    audio: { accent: '#3b82f6', glow: 'rgba(59, 130, 246, 0.2)', icon: <FileAudio size={18} /> },
+    overlay: { accent: '#8b5cf6', glow: 'rgba(139, 92, 246, 0.2)', icon: <Image size={18} /> },
+    music: { accent: '#ef4444', glow: 'rgba(239, 68, 68, 0.2)', icon: <Music size={18} /> },
+  }[trackType] || { accent: '#10b981', glow: 'rgba(16, 185, 129, 0.2)', icon: <Film size={18} /> };
 
-  const inputStyle = { width: '100%', padding: '8px 10px', background: '#161b27', border: '1px solid #2d3748', color: '#e2e8f0', borderRadius: 6, fontSize: '0.85rem', outline: 'none' };
-  const labelStyle = { fontSize: '0.75rem', color: '#718096', display: 'block', marginBottom: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 };
+  const inputStyle = { 
+    width: '100%', 
+    padding: '10px 12px', 
+    background: 'rgba(255,255,255,0.03)', 
+    border: '1px solid rgba(255,255,255,0.1)', 
+    color: '#fff', 
+    borderRadius: 8, 
+    fontSize: '0.85rem', 
+    outline: 'none',
+    transition: 'border-color 0.2s, box-shadow 0.2s'
+  };
+  
+  const labelStyle = { 
+    fontSize: '0.7rem', 
+    color: '#94a3b8', 
+    display: 'block', 
+    marginBottom: 6, 
+    fontWeight: 700, 
+    textTransform: 'uppercase', 
+    letterSpacing: '0.05em' 
+  };
 
   return (
-    <div style={{ width: 280, background: '#0d1117', border: '1px solid #2d3748', borderRadius: 8, display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 }}>
-      {/* Header */}
-      <div style={{ padding: '14px 16px', borderBottom: '1px solid #2d3748', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ color: colors.accent }}>{colors.icon}</div>
-          <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#e2e8f0' }}>Clip Editor</span>
+    <div style={{ 
+      width: 320, 
+      background: 'rgba(15, 23, 42, 0.8)', 
+      backdropFilter: 'blur(16px)', 
+      borderRight: '1px solid rgba(255,255,255,0.1)', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100%',
+      boxShadow: '10px 0 30px rgba(0,0,0,0.3)',
+      zIndex: 50
+    }}>
+      <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ padding: 8, borderRadius: 8, background: theme.glow, color: theme.accent }}>{theme.icon}</div>
+          <span style={{ fontSize: '1rem', fontWeight: 800, color: '#f8fafc', letterSpacing: -0.5 }}>Inspector</span>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#4a5568', cursor: 'pointer', padding: 4 }}><X size={16} /></button>
+        <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 6, borderRadius: '50%', display: 'flex' }}><X size={16} /></button>
       </div>
 
-      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* Import File */}
-        <div style={{ background: colors.bg, border: `1px dashed ${colors.accent}55`, borderRadius: 8, padding: 16, textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s' }}
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: 20, overflowY: 'auto' }}>
+        {/* Asset Card */}
+        <div style={{ 
+          background: 'rgba(255,255,255,0.02)', 
+          border: `1px dashed ${theme.accent}44`, 
+          borderRadius: 12, 
+          padding: 24, 
+          textAlign: 'center', 
+          cursor: 'pointer',
+          transition: 'all 0.2s'
+        }}
           onClick={() => fileInputRef.current?.click()}
-          onMouseEnter={e => e.currentTarget.style.borderColor = colors.accent}
-          onMouseLeave={e => e.currentTarget.style.borderColor = colors.accent + '55'}>
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.borderColor = theme.accent; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = theme.accent + '44'; }}>
           <input ref={fileInputRef} type="file" style={{ display: 'none' }}
             accept={trackType === 'video' || trackType === 'overlay' ? 'video/*,image/*' : 'audio/*'}
             onChange={handleFileImport} />
-          <Upload size={20} color={colors.accent} style={{ marginBottom: 8 }} />
-          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: colors.accent }}>
-            {clip.file_path ? '📁 ' + clip.file_path.split('/').pop() : 'Import File'}
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: theme.glow, color: theme.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+            <Upload size={20} />
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#4a5568', marginTop: 4 }}>Click to browse local files</div>
-        </div>
-
-        {/* Label */}
-        <div>
-          <label style={labelStyle}>Label</label>
-          <input value={clip.label} onChange={e => updateField('label', e.target.value)} style={inputStyle} />
-        </div>
-
-        {/* Timing */}
-        <div style={{ display: 'flex', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Start (s)</label>
-            <input type="number" step="0.1" min="0" value={clip.start_time.toFixed(2)}
-              onChange={e => updateField('start_time', parseFloat(e.target.value) || 0)} style={inputStyle} />
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#f1f5f9', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {clip.file_path ? clip.file_path.split('/').pop() : 'Link Media Asset'}
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Duration (s)</label>
-            <input type="number" step="0.1" min="0.25" value={clip.duration.toFixed(2)}
-              onChange={e => updateField('duration', parseFloat(e.target.value) || 0.25)} style={inputStyle} />
+          <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Click to browse or drag & drop</div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div>
+            <label style={labelStyle}>Clip Label</label>
+            <input value={clip.label} onChange={e => updateField('label', e.target.value)} style={inputStyle} placeholder="Enter name..." />
           </div>
-        </div>
 
-        {/* File Path */}
-        <div>
-          <label style={labelStyle}>Asset Path</label>
-          <input value={clip.file_path || ''} onChange={e => updateField('file_path', e.target.value)}
-            placeholder="path/to/file.mp4" style={inputStyle} />
-        </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Start Time</label>
+              <div style={{ position: 'relative' }}>
+                <input type="number" step="0.1" min="0" value={clip.start_time.toFixed(2)}
+                  onChange={e => updateField('start_time', parseFloat(e.target.value) || 0)} style={inputStyle} />
+                <span style={{ position: 'absolute', right: 10, top: 10, fontSize: '0.7rem', color: '#475569' }}>s</span>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Duration</label>
+              <div style={{ position: 'relative' }}>
+                <input type="number" step="0.1" min="0.25" value={clip.duration.toFixed(2)}
+                  onChange={e => updateField('duration', parseFloat(e.target.value) || 0.25)} style={inputStyle} />
+                <span style={{ position: 'absolute', right: 10, top: 10, fontSize: '0.7rem', color: '#475569' }}>s</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Placeholder toggle */}
-        <div style={{ background: '#0f2d1f', border: '1px solid #22c55e33', borderRadius: 7, padding: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <input type="checkbox" id="ph-left" checked={!!clip.is_placeholder} onChange={e => updateField('is_placeholder', e.target.checked)} style={{ marginTop: 2 }} />
-            <div>
-              <label htmlFor="ph-left" style={{ fontSize: '0.85rem', fontWeight: 700, color: '#22c55e', cursor: 'pointer' }}>Dynamic Placeholder</label>
-              <p style={{ margin: '4px 0 0', fontSize: '0.72rem', color: '#4a5568', lineHeight: 1.5 }}>Replaced with user's video during Batch Render.</p>
+          <div>
+            <label style={labelStyle}>Storage Path</label>
+            <input value={clip.file_path || ''} onChange={e => updateField('file_path', e.target.value)}
+              placeholder="e.g. storage/clips/file.mp4" style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '0.75rem' }} />
+          </div>
+
+          <div style={{ 
+            background: clip.is_placeholder ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255,255,255,0.02)', 
+            border: `1px solid ${clip.is_placeholder ? '#10b98133' : 'rgba(255,255,255,0.1)'}`, 
+            borderRadius: 10, 
+            padding: 16 
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <input type="checkbox" id="ph-check" checked={!!clip.is_placeholder} onChange={e => updateField('is_placeholder', e.target.checked)} style={{ marginTop: 4, width: 16, height: 16, accentColor: '#10b981' }} />
+              <div>
+                <label htmlFor="ph-check" style={{ fontSize: '0.85rem', fontWeight: 700, color: clip.is_placeholder ? '#10b981' : '#e2e8f0', cursor: 'pointer' }}>Dynamic Placeholder</label>
+                <p style={{ margin: '4px 0 0', fontSize: '0.7rem', color: '#64748b', lineHeight: 1.5 }}>This clip will be replaced by the user's uploaded video during batch processing.</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Delete */}
         <button onClick={() => { const n = [...tracks]; n[trackIndex].clips.splice(clipIndex, 1); setTracks(n); onClose(); }}
-          style={{ background: '#1a0f0f', border: '1px solid #ef444466', color: '#ef4444', padding: '9px 14px', borderRadius: 6, cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 4 }}>
-          <Trash2 size={14} /> Delete Clip
+          style={{ 
+            background: 'rgba(239, 68, 68, 0.1)', 
+            border: '1px solid rgba(239, 68, 68, 0.2)', 
+            color: '#ef4444', 
+            padding: '12px', 
+            borderRadius: 8, 
+            cursor: 'pointer', 
+            fontSize: '0.85rem', 
+            fontWeight: 700, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: 8, 
+            marginTop: 'auto',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}>
+          <Trash2 size={16} /> Delete Clip
         </button>
       </div>
     </div>
@@ -144,13 +205,12 @@ function ClipEditorPanel({ clip, trackIndex, clipIndex, tracks, setTracks, onClo
 }
 
 export function TemplateBuilderView() {
-  const [templateName, setTemplateName] = useState('New NLE Template');
+  const [templateName, setTemplateName] = useState('Untitled Project');
   const [templateId] = useState(crypto.randomUUID());
   const [tracks, setTracks] = useState([
     { track_id: crypto.randomUUID(), name: `Video 1`, track_type: `video`, clips: [], muted: false, locked: false },
     { track_id: crypto.randomUUID(), name: `Overlay 1`, track_type: `overlay`, clips: [], muted: false, locked: false },
     { track_id: crypto.randomUUID(), name: `Audio 1`, track_type: `audio`, clips: [], muted: false, locked: false },
-    { track_id: crypto.randomUUID(), name: `Music 1`, track_type: `music`, clips: [], muted: false, locked: false },
   ]);
   const [selectedClip, setSelectedClip] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -162,32 +222,25 @@ export function TemplateBuilderView() {
   const [isAutoPreviewEnabled, setIsAutoPreviewEnabled] = useState(true);
   const debounceTimerRef = useRef(null);
 
-  // Auto-preview effect
+  // Auto-preview effect with smarter triggers
   useEffect(() => {
     if (!isAutoPreviewEnabled) return;
-    
-    // Clear existing timer
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
-    // Only auto-preview if there's at least one clip WITH a file or placeholder
     const hasValidClips = tracks.some(t => t.clips.some(c => c.is_placeholder || c.file_path || c._localFile));
     if (!hasValidClips) return;
 
-    // Set new timer
     debounceTimerRef.current = setTimeout(() => {
-      generatePreview(true); // true = silent/background
-    }, 2000); // 2 second debounce
+      generatePreview(true);
+    }, 2500); // Slightly longer debounce for better stability
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [tracks, templateName]);
+  }, [tracks, templateName, isAutoPreviewEnabled]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/templates`)
-      .then(r => r.json())
-      .then(d => setSavedTemplates(d.templates || []))
-      .catch(() => {});
+    fetch(`${API_BASE_URL}/api/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
   }, []);
 
   const saveTemplate = async () => {
@@ -205,9 +258,9 @@ export function TemplateBuilderView() {
         body: JSON.stringify({ template_id: templateId, name: templateName, tracks: cleanTracks }),
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      setSaveMsg(`✓ Saved!`);
+      setSaveMsg(`✓ Saved`);
       fetch(`${API_BASE_URL}/api/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
-      setTimeout(() => setSaveMsg(``), 2000);
+      setTimeout(() => setSaveMsg(``), 3000);
     } catch (err) { setSaveMsg(`Error: ` + err.message); }
     setIsSaving(false);
   };
@@ -215,13 +268,11 @@ export function TemplateBuilderView() {
   const generatePreview = async (isAuto = false) => {
     setIsPreviewing(true);
     try {
-      // 1. Upload local files if any
-      const updatedTracks = JSON.parse(JSON.stringify(tracks)); // Deep clone
+      const updatedTracks = JSON.parse(JSON.stringify(tracks));
       let needsStateUpdate = false;
 
       for (let t of updatedTracks) {
         for (let c of t.clips) {
-          // Find the original clip to see if it has a local file (since we cloned)
           const originalTrack = tracks.find(ot => ot.track_id === t.track_id);
           const originalClip = originalTrack?.clips.find(oc => oc.clip_id === c.clip_id);
           
@@ -239,14 +290,16 @@ export function TemplateBuilderView() {
       }
       if (needsStateUpdate) setTracks([...tracks]);
 
-      // 2. Request preview
       const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ template: { name: templateName, tracks: updatedTracks } }),
       });
       const data = await res.json();
-      if (data.preview_url) setPreviewUrl(data.preview_url);
-      else throw new Error(data.error || `Preview failed`);
+      if (data.preview_url) {
+        // Force refresh video element if URL is same
+        setPreviewUrl(data.preview_url + "?t=" + Date.now());
+      } else throw new Error(data.error || `Preview failed`);
     } catch (err) { 
       if (!isAuto) alert(`Preview Error: ` + err.message);
       else console.error("Auto-preview error:", err);
@@ -264,138 +317,138 @@ export function TemplateBuilderView() {
   const selClip = selectedClip ? tracks[selectedClip.trackIndex]?.clips[selectedClip.clipIndex] : null;
 
   return (
-    <div style={{ display: `flex`, flexDirection: `column`, flex: 1, padding: `20px 24px`, gap: 16, minHeight: 0, background: `#0d1117` }}>
-      {/* Top bar */}
-      <div style={{ display: `flex`, alignItems: `center`, gap: 12 }}>
-        <div style={{ display: `flex`, alignItems: `center`, gap: 8 }}>
-          <Layers size={22} color="#7c6af7" />
-          <span style={{ fontSize: `1.4rem`, fontWeight: 800, color: `#e2e8f0` }}>NLE Template Builder</span>
+    <div style={{ display: `flex`, height: '100vh', background: `#020617`, color: '#f8fafc', overflow: 'hidden' }}>
+      
+      {/* Asset / Clip Sidebar */}
+      {selClip ? (
+        <ClipEditorPanel
+          clip={selClip}
+          trackIndex={selectedClip.trackIndex}
+          clipIndex={selectedClip.clipIndex}
+          tracks={tracks}
+          setTracks={setTracks}
+          onClose={() => setSelectedClip(null)}
+        />
+      ) : (
+        <div style={{ width: 80, background: 'rgba(15, 23, 42, 0.9)', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '24px 0', gap: 24 }}>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#7c6af7', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(124, 106, 247, 0.3)' }}><Layers size={20} /></div>
+          <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />
+          <button style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Film size={24} /></button>
+          <button style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><FileAudio size={24} /></button>
+          <button style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}><Image size={24} /></button>
         </div>
-        <input value={templateName} onChange={e => setTemplateName(e.target.value)}
-          style={{ padding: `7px 14px`, background: `#161b27`, border: `1px solid #2d3748`, color: `#e2e8f0`, borderRadius: 6, fontSize: `0.95rem`, width: 260 }} />
-        <div style={{ flex: 1 }} />
+      )}
+
+      {/* Main Workspace Area */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#161b27', padding: '4px 12px', borderRadius: 6, border: '1px solid #2d3748' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: isAutoPreviewEnabled ? '#22c55e' : '#718096' }}>LIVE PREVIEW</span>
-          <div 
-            onClick={() => setIsAutoPreviewEnabled(!isAutoPreviewEnabled)}
-            style={{ width: 34, height: 18, background: isAutoPreviewEnabled ? '#7c6af7' : '#2d3748', borderRadius: 20, position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
-          >
-            <div style={{ position: 'absolute', top: 2, left: isAutoPreviewEnabled ? 18 : 2, width: 14, height: 14, background: '#fff', borderRadius: '50%', transition: 'left 0.2s' }} />
+        {/* Header bar */}
+        <div style={{ height: 64, borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(15, 23, 42, 0.4)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <input value={templateName} onChange={e => setTemplateName(e.target.value)}
+              style={{ background: 'none', border: 'none', color: '#fff', fontSize: '1.1rem', fontWeight: 700, width: 300, outline: 'none' }} />
+          </div>
+
+          <div style={{ flex: 1 }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.03)', padding: '6px 14px', borderRadius: 100, border: '1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: isAutoPreviewEnabled ? '#10b981' : '#64748b', letterSpacing: 1 }}>AUTO-RENDER</span>
+              <div onClick={() => setIsAutoPreviewEnabled(!isAutoPreviewEnabled)} style={{ width: 32, height: 16, background: isAutoPreviewEnabled ? '#7c6af7' : '#334155', borderRadius: 20, position: 'relative', cursor: 'pointer' }}>
+                <div style={{ position: 'absolute', top: 2, left: isAutoPreviewEnabled ? 18 : 2, width: 12, height: 12, background: '#fff', borderRadius: '50%', transition: 'all 0.2s' }} />
+              </div>
+            </div>
+
+            <div style={{ position: `relative` }}>
+              <button onClick={() => setShowTemplateList(!showTemplateList)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FolderOpen size={16} /> Open
+              </button>
+              {showTemplateList && (
+                <div style={{ position: `absolute`, right: 0, top: 48, background: `#1e293b`, border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 12, minWidth: 240, zIndex: 100, boxShadow: `0 20px 50px rgba(0,0,0,0.5)`, overflow: 'hidden' }}>
+                  {savedTemplates.length === 0
+                    ? <div style={{ padding: 20, color: `#64748b`, fontSize: `0.85rem`, textAlign: `center` }}>No projects found</div>
+                    : savedTemplates.map(t => (
+                      <div key={t.template_id} onClick={() => loadTemplate(t)} style={{ padding: `12px 20px`, cursor: `pointer`, borderBottom: `1px solid rgba(255,255,255,0.05)`, color: `#e2e8f0`, fontSize: `0.9rem` }}
+                        onMouseEnter={e => e.currentTarget.style.background = `rgba(255,255,255,0.05)`}
+                        onMouseLeave={e => e.currentTarget.style.background = `transparent`}>
+                        {t.name}
+                      </div>
+                    ))
+                  }
+                </div>
+              )}
+            </div>
+
+            <button onClick={() => setTracks([...tracks, { track_id: crypto.randomUUID(), name: `Body Track`, track_type: `video`, clips: [], muted: false, locked: false }])} 
+              style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)', color: '#10b981', padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Plus size={16} /> Body Track
+            </button>
+
+            <button onClick={() => generatePreview(false)} disabled={isPreviewing} style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '8px 16px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+              {isPreviewing ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />} Refresh
+            </button>
+
+            <button onClick={saveTemplate} disabled={isSaving} style={{ background: '#7c6af7', border: 'none', color: '#fff', padding: '8px 20px', borderRadius: 8, fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 12px rgba(124, 106, 247, 0.4)' }}>
+              <Save size={16} /> {isSaving ? `Saving...` : `Save`}
+            </button>
+            {saveMsg && <span style={{ fontSize: `0.8rem`, color: `#10b981`, fontWeight: 700 }}>{saveMsg}</span>}
           </div>
         </div>
 
-        <div style={{ position: `relative` }}>
-          <button onClick={() => setShowTemplateList(!showTemplateList)} style={{ padding: `8px 16px`, background: `#161b27`, border: `1px solid #2d3748`, color: `#a0aec0`, borderRadius: 6, cursor: `pointer`, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
-            <FolderOpen size={15} /> Load
-          </button>
-          {showTemplateList && (
-            <div style={{ position: `absolute`, right: 0, top: 40, background: `#161b27`, border: `1px solid #2d3748`, borderRadius: 8, minWidth: 240, zIndex: 100, boxShadow: `0 8px 32px rgba(0,0,0,0.5)` }}>
-              {savedTemplates.length === 0
-                ? <div style={{ padding: 16, color: `#4a5568`, fontSize: `0.85rem`, textAlign: `center` }}>No saved templates</div>
-                : savedTemplates.map(t => (
-                  <div key={t.template_id} onClick={() => loadTemplate(t)} style={{ padding: `10px 16px`, cursor: `pointer`, borderBottom: `1px solid #2d3748`, color: `#e2e8f0`, fontSize: `0.9rem` }}
-                    onMouseEnter={e => e.currentTarget.style.background = `#1a202c`}
-                    onMouseLeave={e => e.currentTarget.style.background = `transparent`}>
-                    {t.name}
-                  </div>
-                ))
-              }
-            </div>
-          )}
-        </div>
-        <button onClick={() => setTracks([...tracks, { track_id: crypto.randomUUID(), name: `Body`, track_type: `video`, clips: [], muted: false, locked: false }])} 
-          style={{ padding: `8px 16px`, background: `#0d2d1f`, border: `1px solid #22c55e`, color: `#22c55e`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
-          <Plus size={15} /> Add Body Track
-        </button>
-        <button onClick={() => generatePreview(false)} disabled={isPreviewing} style={{ padding: `8px 16px`, background: `#2d3748`, border: `1px solid #4a5568`, color: `#fff`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
-          {isPreviewing ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />} Force Preview
-        </button>
-        <button onClick={saveTemplate} disabled={isSaving} style={{ padding: `8px 20px`, background: `#7c6af7`, border: `none`, color: `#fff`, borderRadius: 6, cursor: `pointer`, fontWeight: 700, display: `flex`, alignItems: `center`, gap: 6, fontSize: `0.9rem` }}>
-          <Save size={15} /> {isSaving ? `Saving…` : `Save Template`}
-        </button>
-        {saveMsg && <span style={{ fontSize: `0.85rem`, color: `#22c55e`, fontWeight: 700 }}>{saveMsg}</span>}
-      </div>
-
-      {/* Main layout: Left Panel + (Preview & Timeline) */}
-      <div style={{ display: `flex`, gap: 16, flex: 1, minHeight: 0 }}>
-        {/* Left Editing Panel - shown when clip is selected */}
-        {selClip && (
-          <ClipEditorPanel
-            clip={selClip}
-            trackIndex={selectedClip.trackIndex}
-            clipIndex={selectedClip.clipIndex}
-            tracks={tracks}
-            setTracks={setTracks}
-            onClose={() => setSelectedClip(null)}
-          />
-        )}
-
-        {/* Right Content: Preview at top, Timeline at bottom */}
-        <div style={{ flex: 1, minHeight: 0, display: `flex`, flexDirection: `column`, gap: 16 }}>
+        {/* Viewport Area */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 24, gap: 24, overflow: 'hidden' }}>
           
-          {/* Real-time Preview Section */}
+          {/* Top: Preview Panel */}
           <div style={{ 
-            height: '42vh', 
-            minHeight: 320, 
+            flex: 3, 
             background: '#000', 
-            borderRadius: 12, 
-            border: '1px solid #2d3748', 
+            borderRadius: 20, 
+            border: '1px solid rgba(255,255,255,0.08)', 
             position: 'relative', 
             overflow: 'hidden',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.4)'
+            boxShadow: '0 30px 60px rgba(0,0,0,0.5)'
           }}>
             {previewUrl ? (
-              <video 
-                key={previewUrl} 
-                src={previewUrl} 
-                controls 
-                autoPlay 
-                muted
-                style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 4 }} 
-              />
+              <video key={previewUrl} src={previewUrl} controls autoPlay muted style={{ maxWidth: '100%', maxHeight: '100%' }} />
             ) : (
-              <div style={{ textAlign: 'center', color: '#4a5568' }}>
-                <Film size={48} style={{ marginBottom: 12, opacity: 0.3 }} />
-                <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>No Preview Available</div>
-                <div style={{ fontSize: '0.75rem', marginTop: 4 }}>Add clips to the timeline to generate a preview automatically</div>
+              <div style={{ textAlign: 'center', opacity: 0.3 }}>
+                <Film size={64} style={{ marginBottom: 16 }} />
+                <div style={{ fontWeight: 600 }}>Viewport Empty</div>
+                <div style={{ fontSize: '0.85rem' }}>Add content to the timeline to generate a preview</div>
               </div>
             )}
 
-            {/* Loading Overlay */}
+            {/* Premium Loading Overlay */}
             {isPreviewing && (
-              <div style={{ 
-                position: 'absolute', 
-                inset: 0, 
-                background: 'rgba(13, 17, 23, 0.7)', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                zIndex: 10,
-                backdropFilter: 'blur(2px)'
-              }}>
-                <Loader2 size={32} className="animate-spin" color="#7c6af7" />
-                <div style={{ marginTop: 12, color: '#fff', fontSize: '0.9rem', fontWeight: 700, letterSpacing: 0.5 }}>RENDERING LIVE PREVIEW...</div>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid rgba(124, 106, 247, 0.2)', borderTopColor: '#7c6af7', animation: 'spin 1s linear infinite' }} />
+                <div style={{ marginTop: 20, fontSize: '0.9rem', fontWeight: 700, letterSpacing: 2, color: '#7c6af7' }}>RENDERING STUDIO PREVIEW</div>
+                <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
               </div>
             )}
 
-            {/* Status Badge */}
-            <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 800, color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: isAutoPreviewEnabled ? '#22c55e' : '#718096', boxShadow: isAutoPreviewEnabled ? '0 0 8px #22c55e' : 'none' }} />
-              {isAutoPreviewEnabled ? 'LIVE' : 'AUTO-OFF'}
+            {/* Status Indicator */}
+            <div style={{ position: 'absolute', top: 20, left: 20, display: 'flex', gap: 10 }}>
+              <div style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: 8, fontSize: '0.7rem', fontWeight: 800, color: '#fff', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: isAutoPreviewEnabled ? '#10b981' : '#64748b', boxShadow: isAutoPreviewEnabled ? '0 0 10px #10b981' : 'none' }} />
+                {isAutoPreviewEnabled ? 'STUDIO LIVE' : 'MANUAL MODE'}
+              </div>
             </div>
           </div>
 
-          {/* Timeline */}
-          <div style={{ flex: 1, minHeight: 0, display: `flex`, flexDirection: `column` }}>
+          {/* Bottom: Timeline Panel */}
+          <div style={{ flex: 2, minHeight: 0, display: `flex`, flexDirection: `column` }}>
             <NLETimeline tracks={tracks} setTracks={setTracks} selectedClip={selectedClip} setSelectedClip={setSelectedClip} />
-            <div style={{ marginTop: 8, fontSize: `0.75rem`, color: `#4a5568`, display: 'flex', justifyContent: 'space-between' }}>
-              <div>💡 <strong>Tip:</strong> Double-click on a track lane to add a clip. Drag to move.</div>
-              <div style={{ color: '#718096' }}>Preview updates automatically after 2s of inactivity</div>
+            <div style={{ marginTop: 12, padding: '0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', gap: 16 }}>
+                <span>Double-click track to add clip</span>
+                <span>Drag to reposition</span>
+                <span>Right-click for options</span>
+              </div>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#475569' }}>LUNARA ENGINE v2.0</div>
             </div>
           </div>
         </div>
