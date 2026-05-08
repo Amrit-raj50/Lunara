@@ -31,5 +31,8 @@ RUN mkdir -p storage/clips storage/outputs storage/previews temp_files
 # Expose port 8000
 EXPOSE 8000
 
+# Set PYTHONPATH
+ENV PYTHONPATH=/app
+
 # Start the application
 CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
