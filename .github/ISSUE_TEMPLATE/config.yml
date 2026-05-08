@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/Amrit-raj50/Lunara/discussions
+    about: Use GitHub Discussions for questions, ideas, and general conversation
+  - name: 📚 Documentation
+    url: https://github.com/Amrit-raj50/Lunara/wiki
+    about: Check the wiki for setup guides, API reference, and troubleshooting

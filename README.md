@@ -179,70 +179,30 @@ Lunara/
 
 We welcome contributions from the community! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
 
-### Contributor Guidelines
+📖 **[📋 View our comprehensive Contributing Guide](CONTRIBUTING.md)**
 
-#### 1. Code of Conduct
-- Be respectful and inclusive in all interactions
-- Provide constructive feedback
-- Focus on what's best for the community and project
+### Quick Start for Beginners
 
-#### 2. Getting Started
-1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/YOUR_USERNAME/lunara.git`
-3. **Create a branch**: `git checkout -b feature/your-feature-name`
-4. **Make your changes** with clear, focused commits
-5. **Push** to your fork: `git push origin feature/your-feature-name`
-6. **Open a Pull Request** against the `main` branch
+1. **🍴 Fork** the repository
+2. **📥 Clone** your fork: `git clone https://github.com/YOUR_USERNAME/lunara.git`
+3. **🌿 Create** a branch: `git checkout -b feature/your-feature-name`
+4. **💻 Make** your changes with clear commits
+5. **⬆️ Push** to your fork and **🔄 Open Pull Request**
 
-#### 3. Development Standards
+### Ways to Contribute
 
-**Python (Backend)**
-- Follow PEP 8 style guidelines
-- Add docstrings to all functions and classes
-- Write type hints where applicable
-- Maintain test coverage for new features
+| Type | Description | Time Commitment |
+|------|-------------|-----------------|
+| 🐛 **Bug Reports** | Find and report issues | 5-15 minutes |
+| 💡 **Feature Ideas** | Suggest new functionality | 10-20 minutes |
+| 📝 **Documentation** | Improve docs, wiki, README | 30-60 minutes |
+| 🧪 **Testing** | Write or improve tests | 1-2 hours |
+| 💻 **Code** | Fix bugs or implement features | 2-8 hours |
 
-**JavaScript/React (Frontend)**
-- Use functional components with hooks
-- Follow existing component structure
-- Ensure responsive design compatibility
-- Add PropTypes or JSDoc comments
-
-**Commit Messages**
-```
-type(scope): subject
-
-body (optional)
-
-footer (optional)
-```
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-
-Example:
-```
-feat(audio): add voice isolation preset
-
-Implements AI-based voice isolation using advanced
-deep learning models for cleaner audio output.
-```
-
-#### 4. Pull Request Process
-1. Update the README.md with details of changes if applicable
-2. Ensure all tests pass before submitting
-3. Link any related issues in the PR description
-4. Request review from maintainers
-5. Address review feedback promptly
-
-#### 5. Reporting Issues
-- Use the issue template provided
-- Include steps to reproduce
-- Specify your environment (OS, Python/Node versions)
-- Attach relevant logs or screenshots
-
-#### 6. Feature Requests
-- Open an issue with the `enhancement` label
-- Describe the use case and proposed solution
-- Be open to discussion and alternative approaches
+### Need Help?
+- 💬 **[GitHub Discussions](https://github.com/Amrit-raj50/Lunara/discussions)** - Questions and help
+- 📚 **[Wiki](https://github.com/Amrit-raj50/Lunara/wiki)** - Documentation and guides
+- 🐛 **[Issues](https://github.com/Amrit-raj50/Lunara/issues)** - Bug reports and feature requests
 
 ---
 
