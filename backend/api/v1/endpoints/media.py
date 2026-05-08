@@ -191,16 +191,28 @@ async def preview_endpoint(
             
     is_remove_bg = remove_bg.lower() == "true"
     try:
+        print(f"PREVIEW: Received request. remove_bg={is_remove_bg}, frame_size={len(preview_frame) if preview_frame else 0}")
         params = {
             'subject_scale': subject_scale, 'offset_x': offset_x, 'offset_y': offset_y,
             'bg_blur': bg_blur, 'video_filter': video_filter, 'remove_bg': is_remove_bg,
             'subject_brightness': subject_brightness, 'subject_contrast': subject_contrast,
             'skin_smoothing': skin_smoothing, 'light_match': light_match
         }
+        print("PREVIEW: Processing frame...")
         result_base64 = video_service.process_single_frame(preview_frame, bg_image_path, params)
+        print("PREVIEW: Success")
         return {"preview_result": result_base64}
     except Exception as e:
-        return {"error": str(e)}
+        print(f"PREVIEW ERROR: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "*",
+                "Access-Control-Allow-Headers": "*",
+            }
+        )
     finally:
         if bg_image_path and os.path.exists(bg_image_path):
             try: os.remove(bg_image_path)

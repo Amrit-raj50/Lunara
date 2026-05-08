@@ -7,13 +7,36 @@ import asyncio
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+# Configure CORS
+origins = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://lunara-vjib-git-main-amrit-rajs-projects-d86d2d35.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["*"], # Keep wildcard for flexibility, but explicit handler below will catch issues
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    print(f"GLOBAL ERROR: {str(exc)}")
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Internal Server Error", "detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
