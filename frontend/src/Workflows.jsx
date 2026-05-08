@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Save, FolderOpen, CheckCircle, AlertCircle, Layers, Upload, FileVideo, FileAudio, Image, Film, Trash2, X, Play, Loader2, Plus, Music } from 'lucide-react';
 import NLETimeline from './NLETimeline.jsx';
-import { API_BASE_URL } from './apiConfig.js';
+import { API_BASE_URL, API_V1_URL } from './apiConfig.js';
 
 /* ── Preview Modal ── */
 function PreviewModal({ videoUrl, onClose }) {
@@ -240,7 +240,7 @@ export function TemplateBuilderView() {
   }, [tracks, templateName, isAutoPreviewEnabled]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
+    fetch(`${API_V1_URL}/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
   }, []);
 
   const saveTemplate = async () => {
@@ -253,13 +253,13 @@ export function TemplateBuilderView() {
           return rest;
         }),
       }));
-      const res = await fetch(`${API_BASE_URL}/api/templates`, {
+      const res = await fetch(`${API_V1_URL}/templates`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ template_id: templateId, name: templateName, tracks: cleanTracks }),
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       setSaveMsg(`✓ Saved`);
-      fetch(`${API_BASE_URL}/api/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
+      fetch(`${API_V1_URL}/templates`).then(r => r.json()).then(d => setSavedTemplates(d.templates || [])).catch(() => {});
       setTimeout(() => setSaveMsg(``), 3000);
     } catch (err) { setSaveMsg(`Error: ` + err.message); }
     setIsSaving(false);
@@ -279,7 +279,7 @@ export function TemplateBuilderView() {
           if (c._localFile) {
             const fd = new FormData();
             fd.append(`file`, c._localFile);
-            const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
+            const res = await fetch(`${API_V1_URL}/media/upload_clip`, { method: 'POST', body: fd });
             const data = await res.json();
             
             // Update the track and clip in an immutable way
@@ -297,7 +297,7 @@ export function TemplateBuilderView() {
       }
       if (needsStateUpdate) setTracks(localTracks);
 
-      const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
+      const res = await fetch(`${API_V1_URL}/render/preview`, {
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ template: { name: templateName, tracks: updatedTracks } }),
@@ -478,7 +478,7 @@ export function BatchRenderView() {
   const [isPreviewing, setIsPreviewing] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/templates`)
+    fetch(`${API_V1_URL}/templates`)
       .then(r => r.json())
       .then(d => { setTemplates(d.templates || []); if (d.templates?.length) setSelectedTemplate(d.templates[0].template_id); })
       .catch(() => {});
@@ -486,7 +486,7 @@ export function BatchRenderView() {
 
   useEffect(() => {
     if (!jobId || jobStatus?.status === `done` || jobStatus?.status === `error`) return;
-    const t = setInterval(() => fetch(`${API_BASE_URL}/api/render/${jobId}`).then(r => r.json()).then(setJobStatus), 1000);
+    const t = setInterval(() => fetch(`${API_V1_URL}/render/${jobId}`).then(r => r.json()).then(setJobStatus), 1000);
     return () => clearInterval(t);
   }, [jobId, jobStatus]);
 
@@ -498,7 +498,7 @@ export function BatchRenderView() {
     fd.append(`thumbnail_title`, thumbTitle);
     fd.append(`export_srt`, exportSrt);
     fd.append(`burn_subs`, burnSubs);
-    const r = await fetch(`${API_BASE_URL}/api/render/batch`, { method: 'POST', body: fd });
+    const r = await fetch(`${API_V1_URL}/render/batch`, { method: 'POST', body: fd });
     const d = await r.json();
     setJobId(d.job_id);
   };
@@ -507,7 +507,7 @@ export function BatchRenderView() {
     setIsPreviewing(true);
     try {
       const tmpl = templates.find(t => t.template_id === selectedTemplate);
-      const res = await fetch(`${API_BASE_URL}/api/render/preview`, {
+      const res = await fetch(`${API_V1_URL}/render/preview`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ template: tmpl, body_clip: clipPath }),
       });
@@ -594,7 +594,7 @@ export function BatchRenderView() {
                   const fd = new FormData();
                   fd.append(`file`, f);
                   try {
-                    const res = await fetch(`${API_BASE_URL}/api/upload_clip`, { method: 'POST', body: fd });
+                    const res = await fetch(`${API_V1_URL}/media/upload_clip`, { method: 'POST', body: fd });
                     const data = await res.json();
                     setBodyClips([...bodyClips, { name: f.name, path: data.file_path }]);
                   } catch (err) {
@@ -641,7 +641,7 @@ export function BatchRenderView() {
                         : res.success ? (
                           <>
                             <span style={{ color: '#22c55e', display: 'flex', alignItems: 'center', gap: 4 }}><CheckCircle size={13} /> Done</span>
-                            <a href={`${API_BASE_URL}/api/render/output/${res.output_name}`} download style={{ color: '#7c6af7', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #7c6af7', padding: '2px 8px', borderRadius: 4 }}>Download</a>
+                            <a href={`${API_V1_URL}/render/output/${res.output_name}`} download style={{ color: '#7c6af7', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 700, border: '1px solid #7c6af7', padding: '2px 8px', borderRadius: 4 }}>Download</a>
                           </>
                         )
                           : <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: 4 }}><AlertCircle size={13} /> Error</span>}
